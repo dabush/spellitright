@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spell It Right</title>
+<meta name="description" content="Spelling practice for college students. Instructors paste a word list and share a link; no accounts, nothing stored.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one centered column read like a dictionary page; teacher view is three numbered steps, student view is one dictionary entry at a time with the headword hidden. */
+:root {
+  --paper: #f6f7f9;
+  --sheet: #ffffff;
+  --ink: #161c27;
+  --ink-soft: #5a6272;
+  --rule: #dfe3ea;
+  --rule-strong: #b4bccb;
+  --accent: #1f3a68;
+  --accent-ink: #ffffff;
+  --accent-soft: #e8edf6;
+  --good: #24704a;
+  --good-bg: #e7f3ec;
+  --bad: #a8322a;
+  --bad-bg: #f9e9e7;
+  --help-bg: #f3efe4;
+  --font-display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #11151c; --sheet: #181d27; --ink: #e9ecf2; --ink-soft: #a2aaba;
+    --rule: #2a3140; --rule-strong: #465063; --accent: #9db6e6; --accent-ink: #0f1520; --accent-soft: #1f2a3e;
+    --good: #7fcfa2; --good-bg: #17301f; --bad: #f19a90; --bad-bg: #3a1e1b; --help-bg: #2c2a22;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #11151c; --sheet: #181d27; --ink: #e9ecf2; --ink-soft: #a2aaba;
+  --rule: #2a3140; --rule-strong: #465063; --accent: #9db6e6; --accent-ink: #0f1520; --accent-soft: #1f2a3e;
+  --good: #7fcfa2; --good-bg: #17301f; --bad: #f19a90; --bad-bg: #3a1e1b; --help-bg: #2c2a22;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--ink); padding-bottom: 10px; }
+.brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.brand b { font-family: var(--font-display); font-size: 1.9rem; font-weight: 600; letter-spacing: -.01em; }
+.brand b span { font-style: italic; font-weight: 400; color: var(--accent); }
+.brand small { font-family: var(--font-ui); color: var(--ink-soft); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.2; font-family: var(--font-display); font-weight: 600; }
+h2 { font-size: 1.35rem; display: flex; gap: 12px; align-items: baseline; }
+h2 .step { font-family: var(--font-ui); font-weight: 600; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); flex: none; }
+p { margin: 0; }
+.muted { color: var(--ink-soft); }
+.small { font-size: .9rem; }
+
+.sheet {
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius);
+  padding: 24px; display: flex; flex-direction: column; gap: 16px;
+}
+
+label { font-family: var(--font-ui); font-weight: 500; font-size: .8rem; letter-spacing: .02em; color: var(--ink-soft); }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+input[type=text], textarea, select {
+  font: inherit; font-size: 1rem; color: var(--ink); background: var(--sheet);
+  border: 1px solid var(--rule-strong); border-radius: var(--radius); padding: 8px 10px; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; min-height: 88px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, .linkbtn:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.row > .grow { flex: 1 1 220px; }
+
+button {
+  font-family: var(--font-ui); font-size: .9rem; font-weight: 500; cursor: pointer; border-radius: var(--radius); padding: 9px 16px;
+  border: 1px solid var(--rule-strong); background: var(--sheet); color: var(--ink);
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.primary:hover { filter: brightness(1.12); color: var(--accent-ink); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.ghost { border-color: transparent; background: transparent; color: var(--accent); padding-inline: 6px; }
+button.ghost:hover { text-decoration: underline; }
+.linkbtn { background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+.notice { border-left: 3px solid var(--accent); padding: 8px 12px; font-size: .92rem; background: var(--accent-soft); }
+.status { font-family: var(--font-ui); font-size: .85rem; color: var(--ink-soft); min-height: 1.4em; }
+.status.err { color: var(--bad); }
+
+/* word entries */
+.entries { display: flex; flex-direction: column; gap: 0; }
+.entry { border-top: 1px solid var(--rule); padding: 14px 0; display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.entry:last-child { border-bottom: 1px solid var(--rule); }
+.entry .full { grid-column: 1 / -1; }
+.entry .head { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.entry .num { font-family: var(--font-ui); font-size: .8rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.entry .wordin { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; }
+.entry.missing .num::after { content: " · details missing"; color: var(--bad); }
+@media (max-width: 520px) { .entry { grid-template-columns: 1fr; } }
+
+.linkbox { display: flex; gap: 8px; flex-wrap: wrap; }
+.linkbox input { flex: 1 1 260px; font-family: ui-monospace, Menlo, monospace; font-size: .8rem; }
+
+/* answer key */
+.keywrap { overflow-x: auto; }
+table.key { border-collapse: collapse; width: 100%; font-size: .95rem; }
+table.key th, table.key td { text-align: left; padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.key th { font-family: var(--font-ui); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; border-bottom-color: var(--ink); }
+table.key td.w { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; white-space: nowrap; }
+table.key td.n { font-family: var(--font-ui); font-variant-numeric: tabular-nums; color: var(--ink-soft); width: 2em; }
+
+/* student */
+.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); padding: 28px 26px; display: flex; flex-direction: column; gap: 20px; }
+.progress { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-family: var(--font-ui); font-size: .8rem; letter-spacing: .04em; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.bar { height: 2px; background: var(--rule); overflow: hidden; flex: 1; max-width: 260px; }
+.bar i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+.clue-label { font-family: var(--font-ui); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; margin-bottom: 2px; }
+.sounds { font-family: var(--font-display); font-style: italic; font-size: clamp(1.8rem, 6vw, 2.5rem); font-weight: 400; color: var(--accent); overflow-wrap: anywhere; line-height: 1.2; }
+.clue { font-size: 1.12rem; }
+#sSent { font-style: italic; }
+.blank { display: inline-block; min-width: 4.5em; border-bottom: 1.5px solid var(--ink); margin: 0 .15em; }
+.speak { display: flex; gap: 8px; flex-wrap: wrap; }
+.speak button { display: inline-flex; gap: 8px; align-items: center; }
+.speak svg { width: 16px; height: 16px; flex: none; }
+
+input.answer {
+  font-family: var(--font-display); font-size: clamp(1.7rem, 6vw, 2.3rem); color: var(--ink);
+  width: 100%; border: none; border-bottom: 1.5px solid var(--ink); border-radius: 0; padding: 4px 2px; background: transparent;
+}
+input.answer:focus-visible { outline: none; border-bottom: 2px solid var(--accent); }
+.feedback { border-left: 3px solid currentColor; padding: 10px 14px; font-family: var(--font-ui); font-size: .95rem; }
+.feedback.good { background: var(--good-bg); color: var(--good); }
+.feedback.bad { background: var(--bad-bg); color: var(--bad); }
+.feedback.help { background: var(--help-bg); color: var(--ink); }
+.feedback .reveal { font-family: var(--font-display); font-size: 1.8rem; font-weight: 600; display: block; margin-top: 4px; color: var(--ink); }
+.scorebig { font-family: var(--font-display); font-size: 3.4rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.results ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+.results li { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.results .w { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; }
+.pill { font-family: var(--font-ui); font-size: .75rem; font-weight: 600; letter-spacing: .03em; border-radius: 2px; padding: 2px 8px; white-space: nowrap; }
+.pill.first { background: var(--good-bg); color: var(--good); }
+.pill.second { background: var(--help-bg); color: var(--ink); }
+.pill.help { background: var(--bad-bg); color: var(--bad); }
+.tries { font-size: .9rem; color: var(--ink-soft); width: 100%; }
+footer { text-align: center; font-family: var(--font-ui); font-size: .8rem; color: var(--ink-soft); }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>Spell <span>It</span> Right</b><small id="modeLabel">Teacher page</small></div>
+    <button class="ghost" id="toTeacher" hidden>Create a list</button>
+  </header>
+
+  <!-- ============ TEACHER VIEW ============ -->
+  <main id="teacher" class="wrap" style="gap:24px">
+    <section class="sheet">
+      <h2><span class="step">Step 1</span>Add your words</h2>
+      <div class="row">
+        <div class="field grow"><label for="listTitle">List name</label><input type="text" id="listTitle" placeholder="ENG 101: commonly misspelled words"></div>
+        <div class="field"><label for="grade">Level</label>
+          <select id="grade">
+            <option value="High school">High school</option>
+            <option value="College" selected>College</option>
+            <option value="Graduate">Graduate</option>
+            <option value="English learners">English learners</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="paste">Type or paste words, one per line or separated by commas</label>
+        <textarea id="paste" placeholder="accommodate, conscientious, liaison"></textarea>
+      </div>
+      <div class="row">
+        <button class="primary" id="addBtn">Add words and fill in details</button>
+        <span class="status" id="addStatus"></span>
+      </div>
+      <p class="small muted" id="aiNote">The app looks up each word's pronunciation, definition and an example sentence in a free online dictionary. Some words have no example sentence, so you may need to write one. You can change anything in step 2.</p>
+    </section>
+
+    <section class="sheet">
+      <div class="row" style="justify-content:space-between">
+        <h2><span class="step">Step 2</span>Check the details</h2>
+        <div class="row">
+          <button class="ghost" id="fillBtn">Fill in blanks</button>
+          <button class="ghost" id="clearBtn">Clear list</button>
+        </div>
+      </div>
+      <div class="notice" id="exampleNote">This is an example list so you can see how it works. Select <b>Clear list</b> to start your own.</div>
+      <div class="entries" id="entries"></div>
+      <button id="addBlank" style="align-self:flex-start">Add a word by hand</button>
+    </section>
+
+    <section class="sheet">
+      <h2><span class="step">Step 3</span>Share with students</h2>
+      <p class="small muted">The whole list is saved inside the link, so there are no accounts and nothing is stored anywhere. If you change the list, make a new link. When students finish, they copy a results summary and paste it wherever you collect work.</p>
+      <div class="row">
+        <button class="primary" id="makeLink">Make student link</button>
+        <button id="preview">Try it as a student</button>
+      </div>
+      <div class="linkbox" id="linkBox" hidden>
+        <input type="text" id="linkOut" readonly aria-label="Student link">
+        <button id="copyLink">Copy link</button>
+      </div>
+      <span class="status" id="linkStatus"></span>
+    </section>
+
+    <section class="sheet">
+      <div class="row" style="justify-content:space-between">
+        <h2>Answer key</h2>
+        <div class="row">
+          <button id="copyKey">Copy answer key</button>
+          <button id="printKey">Print answer key</button>
+          <button id="dlKey">Download answer key</button>
+        </div>
+      </div>
+      <span class="status" id="keyStatus"></span>
+      <div class="keywrap"><table class="key" id="keyTable"></table></div>
+    </section>
+
+    <section class="sheet">
+      <h2>Check a student's results</h2>
+      <p class="small muted">Every results summary ends with a verification code. Paste a summary here to confirm it hasn't been edited. This works in the browser where you made the student link.</p>
+      <div class="field"><label for="vIn">Pasted results</label><textarea id="vIn" rows="6" placeholder="Spell It Right results&#10;Student: …"></textarea></div>
+      <div class="row"><button class="primary" id="vBtn">Check results</button></div>
+      <div class="feedback" id="vOut" hidden></div>
+    </section>
+  </main>
+
+  <!-- ============ STUDENT VIEW ============ -->
+  <main id="student" class="wrap" hidden style="gap:20px">
+    <div>
+      <h1 id="sTitle" style="font-size:1.4rem">Spelling practice</h1>
+      <p class="muted small" id="sSub"></p>
+    </div>
+
+    <section class="card" id="sCard">
+      <div class="progress"><span id="sCount">Word 1 of 10</span><div class="bar"><i id="sBar" style="width:0"></i></div></div>
+      <div>
+        <div class="clue-label">Pronunciation</div>
+        <div class="sounds" id="sSounds"></div>
+      </div>
+      <div class="speak" id="speakRow">
+        <button id="sayWord"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>Hear the word</button>
+        <button id="saySentence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>Hear the sentence</button>
+      </div>
+      <div><div class="clue-label">Definition</div><p class="clue" id="sDef"></p></div>
+      <div><div class="clue-label">Usage</div><p class="clue" id="sSent"></p></div>
+      <form id="sForm" class="field" autocomplete="off">
+        <label for="sAnswer">Your spelling</label>
+        <input class="answer" type="text" id="sAnswer" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="row" style="margin-top:10px">
+          <button class="primary" type="submit" id="sCheck">Check spelling</button>
+          <button type="button" id="sNext" hidden>Next word</button>
+        </div>
+      </form>
+      <div class="feedback" id="sFeedback" hidden></div>
+    </section>
+
+    <section class="card" id="sDone" hidden>
+      <div>
+        <div class="clue-label">Correct on first attempt</div>
+        <div class="row" style="align-items:baseline"><span class="scorebig" id="dScore">0</span><span class="muted" id="dOutOf">out of 0</span></div>
+      </div>
+      <p id="dMsg"></p>
+      <div class="results"><ul id="dList"></ul></div>
+      <div class="row">
+        <button class="primary" id="dMissed">Practice missed words</button>
+        <button id="dAgain">Start over</button>
+      </div>
+    </section>
+
+    <section class="card" id="sSubmit" hidden>
+      <div>
+        <h2>Submit your results</h2>
+        <p class="small muted">Add your name, copy your results, then paste them wherever your instructor collects work, such as the course site or an email.</p>
+      </div>
+      <div class="field"><label for="dName">Your name</label><input type="text" id="dName" autocomplete="name"></div>
+      <div class="field"><label for="dSummary">Your results</label><textarea id="dSummary" readonly rows="9" style="font-family:ui-monospace,Menlo,monospace;font-size:.85rem"></textarea></div>
+      <div class="row">
+        <button class="primary" id="dCopy">Copy results</button>
+        <button id="dSave">Download as a file</button>
+      </div>
+      <span class="status" id="dStatus"></span>
+    </section>
+  </main>
+
+  <footer id="foot">Spell It Right · No accounts. Nothing is stored.</footer>
+</div>
+
+<script>
+// Student links are this page's address plus "#" and the encoded list.
+const PAGE_URL = location.href.split("#")[0];
+
+const EXAMPLE = {
+  title: "Example list: commonly misspelled words",
+  grade: "College",
+  words: [
+    { word: "accommodate", sounds: "/əˈkɒmədeɪt/", definition: "To provide room or lodging for; to adapt to fit someone's needs.", sentence: "The lecture hall can accommodate three hundred students." },
+    { word: "conscientious", sounds: "/ˌkɒnʃiˈɛnʃəs/", definition: "Careful and thorough in doing one's work or duty.", sentence: "She is a conscientious researcher who checks every citation twice." },
+    { word: "liaison", sounds: "/liˈeɪzɒn/", definition: "A person who connects and communicates between two groups.", sentence: "He served as the liaison between the faculty and the student senate." },
+    { word: "millennium", sounds: "/mɪˈlɛniəm/", definition: "A period of one thousand years.", sentence: "The manuscript survived for nearly a millennium in the monastery library." },
+    { word: "occurrence", sounds: "/əˈkʌrəns/", definition: "An event or incident; the fact of something happening.", sentence: "Power outages on campus are a rare occurrence." },
+    { word: "rhythm", sounds: "/ˈrɪðəm/", definition: "A strong, regular, repeated pattern of sound or movement.", sentence: "The poem's rhythm shifts sharply in the final stanza." },
+    { word: "supersede", sounds: "/ˌsuːpəˈsiːd/", definition: "To take the place of something older or less effective.", sentence: "The revised policy will supersede last year's guidelines." },
+    { word: "questionnaire", sounds: "/ˌkwɛstʃəˈnɛə/", definition: "A set of written questions used to gather information.", sentence: "Participants completed a short questionnaire before the study began." }
+  ]
+};
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+
+let state = store.get("spellitout-draft-v3") || structuredClone(EXAMPLE);
+state.isExample = state.isExample ?? (state.title === EXAMPLE.title);
+
+function save() { store.set("spellitout-draft-v3", state); }
+function escapeHtml(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function norm(s) { return String(s || "").trim().replace(/[‘’]/g, "'").replace(/\s+/g, " ").toLowerCase(); }
+
+/* ---------- link encoding: JSON -> deflate -> base64url ---------- */
+function b64url(bytes) {
+  let s = ""; for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function fromB64url(str) {
+  str = str.replace(/-/g, "+").replace(/_/g, "/"); while (str.length % 4) str += "=";
+  const bin = atob(str); const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out;
+}
+async function streamBytes(bytes, stream) {
+  const res = new Response(new Blob([bytes]).stream().pipeThrough(stream));
+  return new Uint8Array(await res.arrayBuffer());
+}
+async function encodeList(list) {
+  const payload = { t: list.title || "", g: list.grade || "", k: list.key || "", w: list.words.map(w => [w.word, w.sounds, w.definition, w.sentence]) };
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  if (window.CompressionStream) return "z" + b64url(await streamBytes(bytes, new CompressionStream("deflate-raw")));
+  return "r" + b64url(bytes);
+}
+async function decodeList(token) {
+  const kind = token[0], body = token.slice(1);
+  let bytes = fromB64url(body);
+  if (kind === "z") bytes = await streamBytes(bytes, new DecompressionStream("deflate-raw"));
+  else if (kind !== "r") throw new Error("bad");
+  const p = JSON.parse(new TextDecoder().decode(bytes));
+  return { title: p.t, grade: p.g, key: p.k || "", words: p.w.map(([word, sounds, definition, sentence]) => ({ word, sounds, definition, sentence })) };
+}
+
+/* ---------- teacher view ---------- */
+function renderEntries() {
+  $("listTitle").value = state.title || "";
+  $("grade").value = state.grade || "College";
+  $("exampleNote").hidden = !state.isExample;
+  const box = $("entries"); box.innerHTML = "";
+  if (!state.words.length) {
+    box.innerHTML = '<p class="muted">No words yet. Add some in step 1.</p>';
+  }
+  state.words.forEach((w, i) => {
+    const missing = !w.sounds || !w.definition || !w.sentence;
+    const el = document.createElement("div");
+    el.className = "entry" + (missing ? " missing" : "");
+    el.innerHTML = `
+      <div class="head"><span class="num">${i + 1}.</span>
+        <button class="ghost" data-del="${i}" aria-label="Remove ${escapeHtml(w.word)}">Remove</button></div>
+      <div class="field"><label for="w${i}">Word</label><input type="text" class="wordin" id="w${i}" data-i="${i}" data-k="word" value="${escapeHtml(w.word)}"></div>
+      <div class="field"><label for="s${i}">Pronunciation</label><input type="text" id="s${i}" data-i="${i}" data-k="sounds" value="${escapeHtml(w.sounds)}" placeholder="/əˈkɒmədeɪt/"></div>
+      <div class="field full"><label for="d${i}">Meaning</label><input type="text" id="d${i}" data-i="${i}" data-k="definition" value="${escapeHtml(w.definition)}"></div>
+      <div class="field full"><label for="x${i}">Example sentence (use the word in it)</label><input type="text" id="x${i}" data-i="${i}" data-k="sentence" value="${escapeHtml(w.sentence)}"></div>`;
+    box.appendChild(el);
+  });
+  renderKey();
+}
+function renderKey() {
+  const rows = state.words.map((w, i) => `<tr><td class="n">${i + 1}</td><td class="w">${escapeHtml(w.word)}</td><td>${escapeHtml(w.sounds)}</td><td>${escapeHtml(w.definition)}</td></tr>`).join("");
+  $("keyTable").innerHTML = `<thead><tr><th>#</th><th>Word</th><th>Pronunciation</th><th>Meaning</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No words yet.</td></tr>'}</tbody>`;
+}
+function linkStale() { $("linkBox").hidden = true; $("linkStatus").textContent = ""; }
+
+$("entries").addEventListener("input", e => {
+  const t = e.target; if (!t.dataset.k) return;
+  state.words[+t.dataset.i][t.dataset.k] = t.value; state.isExample = false;
+  $("exampleNote").hidden = true; save(); renderKey(); linkStale();
+});
+$("entries").addEventListener("click", e => {
+  const i = e.target.dataset.del; if (i === undefined) return;
+  state.words.splice(+i, 1); save(); renderEntries(); linkStale();
+});
+$("listTitle").addEventListener("input", e => { state.title = e.target.value; save(); linkStale(); });
+$("grade").addEventListener("change", e => { state.grade = e.target.value; save(); });
+$("clearBtn").addEventListener("click", () => {
+  state = { title: "", grade: $("grade").value, words: [], isExample: false, key: newKey() };
+  save(); renderEntries(); linkStale(); $("paste").focus();
+});
+$("addBlank").addEventListener("click", () => {
+  if (state.isExample) { state.isExample = false; }
+  state.words.push({ word: "", sounds: "", definition: "", sentence: "" });
+  save(); renderEntries(); linkStale(); $("w" + (state.words.length - 1)).focus();
+});
+
+const DICT_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/";
+
+// Returns {sounds, definition, sentence} from the Free Dictionary API, or null if the word isn't found.
+async function lookUp(word) {
+  const res = await fetch(DICT_URL + encodeURIComponent(word.trim().toLowerCase()));
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("http " + res.status);
+  const entries = await res.json();
+  if (!Array.isArray(entries) || !entries.length) return null;
+  let sounds = "", definition = "", sentence = "";
+  for (const e of entries) {
+    sounds ||= e.phonetic || (e.phonetics || []).map(p => p.text).find(Boolean) || "";
+    for (const m of e.meanings || []) for (const d of m.definitions || []) {
+      if (!definition && d.definition) definition = (m.partOfSpeech ? `(${m.partOfSpeech}) ` : "") + d.definition;
+      if (!sentence && d.example && new RegExp("\\b" + word.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(d.example)) sentence = d.example;
+    }
+  }
+  if (sentence) sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1) + (/[.!?]$/.test(sentence) ? "" : ".");
+  return { sounds, definition, sentence };
+}
+
+async function fillDetails(indexes) {
+  const status = $("addStatus");
+  if (!indexes.length) { status.textContent = "Every word already has its details."; status.className = "status"; return; }
+  status.className = "status"; status.textContent = `Looking up ${indexes.length} word${indexes.length > 1 ? "s" : ""}…`;
+  $("addBtn").disabled = $("fillBtn").disabled = true;
+  const notFound = [], failed = [];
+  let next = 0;
+  async function worker() {
+    while (next < indexes.length) {
+      const w = state.words[indexes[next++]];
+      try {
+        const r = await lookUp(w.word);
+        if (!r) { notFound.push(w.word); continue; }
+        for (const k of ["sounds", "definition", "sentence"]) if (!w[k] && r[k]) w[k] = r[k];
+      } catch { failed.push(w.word); }
+    }
+  }
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  save(); renderEntries(); linkStale();
+  $("addBtn").disabled = $("fillBtn").disabled = false;
+  const msgs = [];
+  if (notFound.length) msgs.push(`No dictionary entry for ${notFound.join(", ")}. Check the spelling or type the details yourself.`);
+  if (failed.length) msgs.push(`Couldn't reach the dictionary for ${failed.join(", ")}. Check your connection, then select Fill in blanks.`);
+  const noSentence = indexes.filter(i => state.words[i].definition && !state.words[i].sentence).length;
+  if (noSentence) msgs.push(`${noSentence} word${noSentence > 1 ? "s need" : " needs"} an example sentence.`);
+  status.className = msgs.length ? "status err" : "status";
+  status.textContent = msgs.length ? msgs.join(" ") : "Done. Look over the details in step 2.";
+}
+
+$("addBtn").addEventListener("click", async () => {
+  const words = $("paste").value.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  if (!words.length) { $("addStatus").textContent = "Type at least one word first."; $("addStatus").className = "status err"; return; }
+  if (state.isExample) { state.words = []; state.title = state.title === EXAMPLE.title ? "" : state.title; state.isExample = false; }
+  const have = new Set(state.words.map(w => norm(w.word)));
+  const added = [];
+  for (const word of words) {
+    if (have.has(norm(word))) continue; have.add(norm(word));
+    state.words.push({ word, sounds: "", definition: "", sentence: "" }); added.push(state.words.length - 1);
+  }
+  $("paste").value = ""; save(); renderEntries(); linkStale();
+  await fillDetails(added);
+});
+$("fillBtn").addEventListener("click", () => {
+  const idx = state.words.map((w, i) => (w.word && (!w.sounds || !w.definition || !w.sentence)) ? i : -1).filter(i => i >= 0);
+  fillDetails(idx);
+});
+
+function newKey() { const a = new Uint8Array(12); crypto.getRandomValues(a); return b64url(a); }
+function listKey() { if (!state.key) { state.key = newKey(); save(); } return state.key; }
+function rememberKey(k) {
+  const keys = store.get("spellitout-keys") || [];
+  if (!keys.includes(k)) { keys.unshift(k); store.set("spellitout-keys", keys.slice(0, 300)); }
+}
+// Lines are compared after trimming and collapsing spaces, so email or LMS reformatting doesn't break the code.
+function canonical(text) {
+  return text.replace(/\r/g, "").split("\n").map(l => l.trim().replace(/\s+/g, " ")).filter(l => l && !/^Verification code:/i.test(l)).join("\n");
+}
+async function verifyCode(key, text) {
+  const data = new TextEncoder().encode(key + "\n" + canonical(text));
+  const hex = [...new Uint8Array(await crypto.subtle.digest("SHA-256", data))].map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  return hex.slice(0, 4) + "-" + hex.slice(4, 8) + "-" + hex.slice(8, 12);
+}
+$("vBtn").addEventListener("click", async () => {
+  const text = $("vIn").value; const out = $("vOut");
+  const show = (kind, html) => { out.className = "feedback " + kind; out.innerHTML = html; out.hidden = false; };
+  const m = text.match(/Verification code:\s*([0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4})/i);
+  if (!text.trim()) return show("bad", "Paste a student's results first.");
+  if (!m) return show("bad", "No verification code found. The last line of the summary may be missing.");
+  const keys = [state.key, ...(store.get("spellitout-keys") || [])].filter(Boolean);
+  for (const k of keys) if (await verifyCode(k, text) === m[1].toUpperCase()) {
+    const who = (text.match(/Student:\s*(.+)/) || [])[1] || "this student";
+    return show("good", `Verified. These results from ${escapeHtml(who.trim())} match what the app produced.`);
+  }
+  show("bad", "Not verified. The text was changed after the app created it, or the list was made in a different browser.");
+});
+
+function readyWords() { return state.words.filter(w => w.word.trim()); }
+
+$("makeLink").addEventListener("click", async () => {
+  const words = readyWords();
+  const st = $("linkStatus"); st.className = "status";
+  if (!words.length) { st.textContent = "Add at least one word first."; st.className = "status err"; return; }
+  rememberKey(listKey());
+  const token = await encodeList({ title: state.title, grade: state.grade, key: listKey(), words });
+  $("linkOut").value = PAGE_URL + "#" + token;
+  $("linkBox").hidden = false;
+  const blanks = words.filter(w => !w.sounds || !w.definition || !w.sentence).length;
+  st.textContent = blanks ? `Link ready. ${blanks} word${blanks > 1 ? "s are" : " is"} missing some details, so students will see fewer clues.` : "Link ready. Send it to your students.";
+});
+$("copyLink").addEventListener("click", () => copyText($("linkOut").value, $("linkStatus"), "Link copied.", $("linkOut")));
+$("preview").addEventListener("click", () => {
+  const words = readyWords();
+  if (!words.length) { $("linkStatus").textContent = "Add at least one word first."; $("linkStatus").className = "status err"; return; }
+  rememberKey(listKey());
+  startStudent({ title: state.title, grade: state.grade, key: listKey(), words }, true);
+});
+
+function keyText() {
+  const lines = [(state.title || "Spelling list") + " – answer key", ""];
+  state.words.forEach((w, i) => {
+    lines.push(`${i + 1}. ${w.word}   (${w.sounds || "–"})`);
+    if (w.definition) lines.push(`   Meaning: ${w.definition}`);
+    if (w.sentence) lines.push(`   Sentence: ${w.sentence}`);
+  });
+  return lines.join("\n");
+}
+function keyHtml() {
+  const rows = state.words.map((w, i) => `<tr><td>${i + 1}</td><td class="w">${escapeHtml(w.word)}</td><td>${escapeHtml(w.sounds)}</td><td>${escapeHtml(w.definition)}<div class="s">${escapeHtml(w.sentence)}</div></td></tr>`).join("");
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(state.title || "Spelling list")} answer key</title>
+<style>body{font-family:Georgia,serif;margin:32px;color:#111}h1{font-size:20px;margin:0 0 4px}p{margin:0 0 16px;color:#555}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:8px;border-bottom:1px solid #ccc;vertical-align:top;font-size:14px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#555}td.w{font-weight:700;font-size:17px;white-space:nowrap}.s{color:#555;font-style:italic;margin-top:2px}</style></head>
+<body><h1>${escapeHtml(state.title || "Spelling list")}: answer key</h1><p>${escapeHtml(state.grade || "")} · ${state.words.length} words</p>
+<table><thead><tr><th>#</th><th>Word</th><th>Pronunciation</th><th>Meaning and sentence</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+}
+$("copyKey").addEventListener("click", () => copyText(keyText(), $("keyStatus"), "Answer key copied. Paste it into a document to print."));
+$("dlKey").addEventListener("click", async () => {
+  try {
+    const name = (state.title || "spelling-list").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "spelling-list";
+    downloadFile(name + "-answer-key.html", keyHtml(), "text/html");
+    $("keyStatus").className = "status"; $("keyStatus").textContent = "Downloaded. Open the file to view or print it.";
+  } catch { $("keyStatus").textContent = "The download didn't work. Use Copy answer key instead."; }
+});
+
+function downloadFile(filename, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: filename });
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$("printKey").addEventListener("click", () => {
+  const f = Object.assign(document.createElement("iframe"), { title: "Answer key" });
+  f.style.cssText = "position:fixed;width:0;height:0;border:0;right:0;bottom:0";
+  document.body.appendChild(f);
+  f.contentDocument.open(); f.contentDocument.write(keyHtml()); f.contentDocument.close();
+  f.contentWindow.focus(); f.contentWindow.print();
+  setTimeout(() => f.remove(), 60000);
+});
+
+async function copyText(text, statusEl, okMsg, selectEl) {
+  try { await navigator.clipboard.writeText(text); statusEl.className = "status"; statusEl.textContent = okMsg; }
+  catch {
+    if (selectEl) { selectEl.focus(); selectEl.select(); statusEl.textContent = "Press Ctrl+C (or Cmd+C) to copy the selected text."; }
+    else statusEl.textContent = "Copying isn't allowed here. Select the table and copy it instead.";
+  }
+}
+
+/* ---------- student view ---------- */
+let S = null; // { list, order, i, attempts: [[...]], results: [...], phase, preview }
+const canSpeak = "speechSynthesis" in window;
+
+function startStudent(list, preview = false, onlyIdx = null) {
+  const idx = onlyIdx || list.words.map((_, i) => i);
+  S = { list, partial: !!onlyIdx, order: idx, i: 0, attempts: idx.map(() => []), outcome: idx.map(() => null), phase: "ask", preview };
+  $("teacher").hidden = true; $("student").hidden = false;
+  $("modeLabel").textContent = preview ? "Student preview" : "Spelling practice";
+  $("toTeacher").hidden = false;
+  $("toTeacher").textContent = preview ? "Back to teacher page" : "Create a list";
+  $("sTitle").textContent = list.title || "Spelling practice";
+  $("sSub").textContent = `${list.words.length} words${list.grade ? " · " + list.grade : ""}. Read the pronunciation, meaning and usage, then type the word.`;
+  $("speakRow").hidden = !canSpeak;
+  showWord();
+  window.scrollTo(0, 0);
+}
+function current() { return S.list.words[S.order[S.i]]; }
+function blankSentence(w) {
+  const safe = escapeHtml(w.sentence || "");
+  const word = escapeHtml(w.word).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`\\b${word}(s|es|ed|d|ing|er|ly)?\\b`, "gi");
+  return safe.replace(re, (m, suf) => `<span class="blank" aria-label="blank"></span>${suf || ""}`);
+}
+function showWord() {
+  const w = current();
+  $("sCard").hidden = false; $("sDone").hidden = true; $("sSubmit").hidden = true;
+  $("sCount").textContent = `Word ${S.i + 1} of ${S.order.length}`;
+  $("sBar").style.width = (S.i / S.order.length * 100) + "%";
+  $("sSounds").textContent = w.sounds || "–";
+  $("sDef").textContent = w.definition || "No definition given.";
+  $("sSent").innerHTML = w.sentence ? blankSentence(w) : '<span class="muted">No sentence given.</span>';
+  $("sAnswer").value = ""; $("sAnswer").disabled = false;
+  $("sFeedback").hidden = true; $("sNext").hidden = true; $("sCheck").hidden = false;
+  $("sCheck").textContent = "Check spelling";
+  S.phase = "ask";
+  $("sAnswer").focus({ preventScroll: true });
+}
+function speak(text) {
+  if (!canSpeak || !text) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.rate = 0.8; u.lang = "en-US";
+  speechSynthesis.speak(u);
+}
+$("sayWord").addEventListener("click", () => speak(current().word));
+$("saySentence").addEventListener("click", () => speak(current().sentence || current().word));
+
+function feedback(kind, html) { const f = $("sFeedback"); f.className = "feedback " + kind; f.innerHTML = html; f.hidden = false; }
+
+$("sForm").addEventListener("submit", e => {
+  e.preventDefault();
+  if (S.phase === "done") { next(); return; }
+  const w = current(); const typed = $("sAnswer").value;
+  if (!typed.trim()) { $("sAnswer").focus(); return; }
+  const ok = norm(typed) === norm(w.word);
+  if (S.phase === "copy") {
+    if (ok) { feedback("good", "Correct. Moving on."); finishWord(); }
+    else { feedback("help", `Check each letter and try again:<span class="reveal">${escapeHtml(w.word)}</span>`); $("sAnswer").select(); }
+    return;
+  }
+  S.attempts[S.i].push(typed.trim());
+  const n = S.attempts[S.i].length;
+  if (ok) {
+    S.outcome[S.i] = n === 1 ? "first" : "second";
+    feedback("good", n === 1 ? "Correct." : "Correct on the second attempt.");
+    finishWord();
+  } else if (n === 1) {
+    feedback("bad", "Not quite. Review the clues and try once more.");
+    $("sAnswer").select();
+  } else {
+    S.outcome[S.i] = "help"; S.phase = "copy";
+    feedback("help", `The correct spelling is below. Type it once to continue.<span class="reveal">${escapeHtml(w.word)}</span>`);
+    $("sAnswer").value = ""; $("sAnswer").focus();
+  }
+});
+function finishWord() {
+  S.phase = "done"; $("sAnswer").disabled = true;
+  $("sCheck").hidden = true; $("sNext").hidden = false;
+  $("sNext").textContent = S.i + 1 < S.order.length ? "Next word" : "See results";
+  $("sNext").focus();
+}
+$("sNext").addEventListener("click", next);
+function next() { if (S.i + 1 < S.order.length) { S.i++; showWord(); } else showDone(); }
+
+async function showDone() {
+  $("sCard").hidden = true; $("sDone").hidden = false;
+  const total = S.order.length, first = S.outcome.filter(o => o === "first").length;
+  $("dScore").textContent = first; $("dOutOf").textContent = `out of ${total}`;
+  const pct = first / total;
+  $("dMsg").textContent = pct === 1 ? "Every word correct on the first attempt."
+    : pct >= .7 ? "Strong result. Review the missed words to reinforce them."
+    : "Review the missed words below, then practice them again.";
+  const label = { first: "First attempt", second: "Second attempt", help: "Shown answer" };
+  $("dList").innerHTML = S.order.map((wi, k) => {
+    const w = S.list.words[wi], o = S.outcome[k];
+    const tries = o === "first" ? "" : `<span class="tries">You typed: ${S.attempts[k].filter(t => norm(t) !== norm(w.word)).map(escapeHtml).join(", ")}</span>`;
+    return `<li><span class="w">${escapeHtml(w.word)}</span><span class="pill ${o}">${label[o]}</span>${tries}</li>`;
+  }).join("");
+  const missed = S.order.filter((_, k) => S.outcome[k] !== "first");
+  $("dMissed").hidden = !missed.length;
+  $("dMissed").onclick = () => startStudent(S.list, S.preview, missed);
+  $("dAgain").onclick = () => startStudent(S.list, S.preview);
+  $("dAgain").className = missed.length ? "" : "primary";
+  $("sSubmit").hidden = false; $("dStatus").textContent = "";
+  S.finishedAt = new Date();
+  await updateSummary();
+  window.scrollTo(0, 0);
+}
+async function summaryText() {
+  const label = { first: "First attempt", second: "Second attempt", help: "Shown answer" };
+  const first = S.outcome.filter(o => o === "first").length;
+  const when = S.finishedAt.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+  const lines = [
+    "Spell It Right results",
+    "Student: " + ($("dName").value.trim() || "(add your name)"),
+    "List: " + (S.list.title || "Spelling practice") + (S.partial ? " (missed words only)" : ""),
+    "Finished: " + when,
+    `Score: ${first} of ${S.order.length} correct on the first attempt`,
+    ""
+  ];
+  S.order.forEach((wi, k) => {
+    const o = S.outcome[k];
+    lines.push(`${k + 1}. ${S.list.words[wi].word}: ${label[o]}` + (o === "first" ? "" : ` (missed as: ${S.attempts[k].filter(t => norm(t) !== norm(S.list.words[wi].word)).join(", ")})`));
+  });
+  const body = lines.join("\n");
+  return S.list.key ? body + "\n\nVerification code: " + await verifyCode(S.list.key, body) : body;
+}
+let summarySeq = 0;
+async function updateSummary() { const n = ++summarySeq; const t = await summaryText(); if (n === summarySeq) $("dSummary").value = t; }
+$("dName").addEventListener("input", () => { if (S?.finishedAt) updateSummary(); $("dStatus").textContent = ""; });
+$("dCopy").addEventListener("click", () => {
+  if (!$("dName").value.trim()) { $("dStatus").className = "status err"; $("dStatus").textContent = "Add your name first so your instructor knows whose results these are."; $("dName").focus(); return; }
+  copyText($("dSummary").value, $("dStatus"), "Results copied. Paste them where your instructor asked.", $("dSummary"));
+});
+$("dSave").addEventListener("click", async () => {
+  const name = $("dName").value.trim();
+  if (!name) { $("dStatus").className = "status err"; $("dStatus").textContent = "Add your name first so your instructor knows whose results these are."; $("dName").focus(); return; }
+  try {
+    const slug = s => s.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase();
+    downloadFile(`${slug(name) || "student"}-${slug(S.list.title || "spelling") || "spelling"}-results.txt`, $("dSummary").value, "text/plain");
+    $("dStatus").className = "status"; $("dStatus").textContent = "Downloaded. Upload the file where your instructor asked.";
+  } catch { $("dStatus").className = "status"; $("dStatus").textContent = "The download didn't work. Use Copy results instead."; }
+});
+
+function showTeacher() {
+  if (canSpeak) speechSynthesis.cancel();
+  $("student").hidden = true; $("teacher").hidden = false;
+  $("toTeacher").hidden = true; $("modeLabel").textContent = "Teacher page";
+  renderEntries(); window.scrollTo(0, 0);
+}
+$("toTeacher").addEventListener("click", showTeacher);
+
+/* ---------- start ---------- */
+async function route() {
+  const token = location.hash.slice(1);
+  if (token && /^[zr][A-Za-z0-9_-]+$/.test(token)) {
+    try { const list = await decodeList(token); if (list.words.length) { startStudent(list); return; } } catch {}
+    showTeacher();
+    $("linkStatus").textContent = "That student link looks incomplete. Ask your teacher to send it again.";
+    $("linkStatus").className = "status err";
+    return;
+  }
+  showTeacher();
+}
+window.addEventListener("hashchange", route);
+route();
+
+</script>
+</body>
+</html>
